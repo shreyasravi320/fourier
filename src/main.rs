@@ -56,7 +56,7 @@ fn main() {
     {
         gl: GlGraphics::new(opengl),
         bg_color: BACK,
-        cycle: Epicycle::new(3, 1.0, 200.0, 300.0, 100.0, 0.5, WHITE),
+        cycle: Epicycle::new(9, 1.0, 200.0, 300.0, 400.0, 0.15, WHITE),
         points: [[0.0, 0.0]; 300],
         point_count: 0
     };
