@@ -6,7 +6,6 @@ extern crate graphics;
 extern crate glutin_window;
 extern crate opengl_graphics;
 
-use shapes::*;
 use cycle::*;
 use piston::window::WindowSettings;
 use piston::event_loop::*;
@@ -57,7 +56,7 @@ fn main() {
     {
         gl: GlGraphics::new(opengl),
         bg_color: BACK,
-        cycle: Epicycle::new(Circle::new(200.0, 300.0, 100.0, 0.5, WHITE), Child::Empty),
+        cycle: Epicycle::new(3, 1.0, 200.0, 300.0, 100.0, 0.5, WHITE),
         points: [[0.0, 0.0]; 300],
         point_count: 0
     };

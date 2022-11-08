@@ -5,6 +5,9 @@ extern crate opengl_graphics;
 
 use piston::RenderArgs;
 use opengl_graphics::GlGraphics;
+use graphics::types::Color;
+
+// const PI: f64 = 3.14159265358979323846264338327950288419716939937510;
 
 fn add_point(points: &mut [[f64; 2]; 300], point: [f64; 2], point_count: usize)
 {
@@ -41,6 +44,7 @@ pub enum Child
 
 pub struct Epicycle
 {
+    n: f64,
     circle: Circle,
     line: Line,
     child: Child
@@ -49,20 +53,31 @@ pub struct Epicycle
 #[allow(dead_code)]
 impl Epicycle
 {
-    pub fn new(mut circle: Circle, child: Child) -> Self
+    pub fn new(num: i32, n: f64, x: f64, y: f64, rad: f64, border_rad: f64, color: Color) -> Self
     {
-        let line = Line::new(circle.get_x(), circle.get_y(), circle.get_rad(), 0.0, circle.get_color());
-        return Epicycle{ circle: circle, line: line, child: child };
+        let circle = Circle::new(x, y, rad / n, border_rad, color);
+        let line = Line::new(x, y, rad / n, 0.0, color);
+        return Epicycle{ n: n, circle: circle, line: line, 
+            child: if num <= 1 { Child::Empty } else { Child::More(Box::new(Self::new(num - 1, n + 2.0, x + rad / n, y, rad, border_rad, color))) } };
     }
 
     pub fn update(&mut self, time: f64)
     {
-        self.line.set_theta(time);
+        self.line.set_theta(self.n * time);
 
         match self.child
         {
             Child::Empty => (),
-            Child::More(ref mut child) => child.update(time)
+            Child::More(ref mut child) =>
+            {
+                child.circle.set_x(self.line.get_x() + self.line.get_len() * f64::cos(self.line.get_theta()));
+                child.circle.set_y(self.line.get_y() + self.line.get_len() * f64::sin(self.line.get_theta()));
+
+                child.line.set_x(child.circle.get_x());
+                child.line.set_y(child.circle.get_y());
+
+                child.update(time);
+            }
         }
     }
 
