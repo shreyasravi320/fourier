@@ -11,7 +11,8 @@ use opengl_graphics::{ GlGraphics, OpenGL };
 
 struct App
 {
-    gl: GlGraphics
+    gl: GlGraphics,
+    circle: Circle
 }
 
 impl App
@@ -22,6 +23,32 @@ impl App
         self.gl.draw(arg.viewport(), |_c, gl| {
             graphics::clear(BACK, gl);
         });
+
+        self.circle.render(&mut self.gl, arg);
+    }
+}
+
+struct Circle
+{
+    x: i32,
+    y: i32,
+    rad: i32
+}
+
+impl Circle
+{
+    fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs)
+    {
+        use graphics::*;
+
+        const WHITE: [f32; 4] = [ 1.0, 1.0, 1.0, 0.7 ];
+        let circle = ellipse::circle(self.x as f64, self.y as f64, self.rad as f64);
+
+        gl.draw(arg.viewport(), |c, gl| {
+            let transform = c.transform;
+
+            Ellipse::new_border(WHITE, 0.5).draw(circle, &c.draw_state, transform, gl);
+        });
     }
 }
 
@@ -30,11 +57,12 @@ fn main() {
 
     let mut window: GlutinWindow = WindowSettings::new(
         "Fourier", [ 800, 600 ]
-    ).graphics_api(opengl).exit_on_esc(true).build().unwrap();
+    ).graphics_api(opengl).exit_on_esc(true).samples(8).build().unwrap();
 
     let mut app = App
     {
-        gl: GlGraphics::new(opengl)
+        gl: GlGraphics::new(opengl),
+        circle: Circle { x: 400, y: 300, rad: 100 }
     };
 
     let mut events = Events::new(EventSettings::new());
