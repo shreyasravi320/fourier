@@ -1,37 +1,28 @@
+use crate::constants::*;
 use crate::shapes::*;
 
 extern crate graphics;
 extern crate opengl_graphics;
 
+use std::collections::VecDeque;
 use piston::RenderArgs;
 use opengl_graphics::GlGraphics;
 use graphics::types::Color;
 
-const PI: f64 = 3.14159265358979323846264338327950288419716939937510;
-
-fn add_point(points: &mut [[f64; 2]; 300], point: [f64; 2], point_count: usize)
+fn add_point(points: &mut VecDeque<f64>, point: f64)
 {
-    if point_count == 0
+    if points.len() == 0
     {
-        points[0] = point;
+        points.push_front(point);
     }
-    else if point_count == 300
+    else if points.len() == POINTS
     {
-        for i in (0..(point_count - 1)).rev()
-        {
-            points[i + 1] = points[i];
-            points[i + 1][0] += 1.0;
-        }
-        points[0] = point;
+        points.pop_back();
+        points.push_front(point);
     }
     else
     {
-        for i in (0..point_count).rev()
-        {
-            points[i + 1] = points[i];
-            points[i + 1][0] += 1.0;
-        }
-        points[0] = point;
+        points.push_front(point);
     }
 }
 
@@ -81,7 +72,7 @@ impl Epicycle
         }
     }
 
-    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut [[f64; 2]; 300], point_count: &mut usize)
+    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut VecDeque<f64>)
     {
         self.circle.render(gl, arg);
         self.line.render(gl, arg);
@@ -92,25 +83,21 @@ impl Epicycle
             {
                 use graphics::*;
 
-                let line = Line::new(self.circle.get_color(), 0.5);
+                let line = Line::new(self.circle.get_color(), LINE_THICKNESS);
                 let edge_x: f64 = self.line.get_x() + self.line.get_len() * f64::cos(self.line.get_theta());
                 let edge_y: f64 = self.line.get_y() + self.line.get_len() * f64::sin(self.line.get_theta());
 
-                add_point(points, [500.0, edge_y], *point_count);
-                if *point_count < 300
-                {
-                    *point_count += 1;
-                }
+                add_point(points, edge_y);
 
                 gl.draw(arg.viewport(), |c, gl| {
-                    line.draw_from_to([edge_x, edge_y], [500.0, edge_y], &c.draw_state, c.transform, gl);
-                    for i in 0..(*point_count - 1)
+                    line.draw_from_to([edge_x, edge_y], [IMAGE_X, edge_y], &c.draw_state, c.transform, gl);
+                    for i in 0..(points.len() - 1)
                     {
-                        line.draw_from_to(points[i], points[i + 1], &c.draw_state, c.transform, gl);
+                        line.draw_from_to([IMAGE_X + i as f64, points[i]], [IMAGE_X + i as f64 + 1.0, points[i + 1]], &c.draw_state, c.transform, gl);
                     }
                 });
             },
-            Child::More(ref mut child) => child.render(gl, arg, points, point_count)
+            Child::More(ref mut child) => child.render(gl, arg, points)
         }
     }
 }

@@ -1,12 +1,16 @@
+mod constants;
 mod shapes;
 mod cycle;
+mod fourier;
 
 extern crate piston;
 extern crate graphics;
 extern crate glutin_window;
 extern crate opengl_graphics;
 
+use constants::*;
 use cycle::*;
+use std::collections::VecDeque;
 use piston::window::WindowSettings;
 use piston::event_loop::*;
 use piston::{ RenderArgs, RenderEvent };
@@ -15,16 +19,12 @@ use opengl_graphics::{ GlGraphics, OpenGL };
 
 use graphics::types::Color;
 
-const BACK: Color = [ 0.078, 0.098, 0.161, 1.0 ];
-const WHITE: Color = [ 1.0, 1.0, 1.0, 1.0 ];
-
 struct App
 {
     gl: GlGraphics,
     bg_color: Color,
     cycle: Epicycle,
-    points: [[f64; 2]; 300],
-    point_count: usize
+    points: VecDeque<f64>
 }
 
 impl App
@@ -40,7 +40,7 @@ impl App
             graphics::clear(self.bg_color, gl);
         });
 
-        self.cycle.render(&mut self.gl, arg, &mut self.points, &mut self.point_count);
+        self.cycle.render(&mut self.gl, arg, &mut self.points);
     }
 }
 
@@ -49,16 +49,15 @@ fn main() {
     let mut time: f64 = 0.0;
 
     let mut window: GlutinWindow = WindowSettings::new(
-        "Fourier", [ 800, 600 ]
+        "Fourier", [ WIDTH, HEIGHT ]
     ).graphics_api(opengl).exit_on_esc(true).samples(8).build().unwrap();
 
     let mut app = App
     {
         gl: GlGraphics::new(opengl),
         bg_color: BACK,
-        cycle: Epicycle::new(9, 1.0, 200.0, 300.0, 400.0, 0.15, WHITE),
-        points: [[0.0, 0.0]; 300],
-        point_count: 0
+        cycle: Epicycle::new(9, 1.0, CENTER_X, CENTER_Y, RADIUS, CIRCLE_THICKNESS, WHITE),
+        points: VecDeque::new()
     };
 
     let mut events = Events::new(EventSettings::new());
@@ -69,7 +68,7 @@ fn main() {
             app.update(time);
             app.render(&r);
 
-            time += 0.03;
+            time += TIME_DELTA;
         }
     }
 }
