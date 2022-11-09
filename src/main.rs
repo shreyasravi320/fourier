@@ -26,8 +26,7 @@ struct App
     gl: GlGraphics,
     bg_color: Color,
     cycle: Epicycle,
-    points: Vec<f64>,
-    queue: VecDeque<f64>
+    points: VecDeque<Complex>
 }
 
 impl App
@@ -43,7 +42,7 @@ impl App
             graphics::clear(self.bg_color, gl);
         });
 
-        self.cycle.render(&mut self.gl, arg, &mut self.points, &mut self.queue);
+        self.cycle.render(&mut self.gl, arg, &mut self.points);
     }
 }
 
@@ -55,21 +54,20 @@ fn main() {
         "Fourier", [ WIDTH, HEIGHT ]
     ).graphics_api(opengl).exit_on_esc(true).samples(8).build().unwrap();
 
-    // let points: Vec<f64> = vec![100.0, 100.0, 100.0, -100.0, -100.0, -100.0, 100.0, 100.0, 100.0, -100.0, -100.0, -100.0];
-    let mut points: Vec<f64> = Vec::new();
-    for i in -100..100
+    const NUM_POINTS: usize = 100;
+    let mut points: Vec<Complex> = Vec::new();
+    for i in 0..NUM_POINTS
     {
-        points.push(i as f64);
+        points.push(Complex::new(100.0 * f64::cos(i as f64), 100.0 * f64::sin(i as f64)));
     }
-    let transform: Vec<[f64; 3]> = dft(points.clone());
+    let transform: Vec<[f64; 3]> = dft(&mut points);
 
     let mut app = App
     {
         gl: GlGraphics::new(opengl),
         bg_color: BACK,
         cycle: Epicycle::from(0, CENTER_X, CENTER_Y, CIRCLE_THICKNESS, transform, WHITE),
-        points: points.clone(),
-        queue: VecDeque::new()
+        points: VecDeque::new()
     };
 
     let mut events = Events::new(EventSettings::new());
@@ -80,8 +78,7 @@ fn main() {
             app.update(time);
             app.render(&r);
 
-            time += 2.0 * PI / points.len() as f64;
-            // time += 0.005;
+            time += 2.0 * PI / NUM_POINTS as f64;
         }
     }
 }

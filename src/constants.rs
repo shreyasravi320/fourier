@@ -7,8 +7,8 @@ pub const WHITE: Color = [ 1.0, 1.0, 1.0, 1.0 ];
 
 pub const WIDTH: u32 = 800;
 pub const HEIGHT: u32 = 600;
-pub const CENTER_X: f64 = 200.0;
-pub const CENTER_Y: f64 = 300.0;
+pub const CENTER_X: f64 = WIDTH as f64 / 2.0;
+pub const CENTER_Y: f64 = HEIGHT as f64 / 2.0;
 pub const IMAGE_X: f64 = 500.0;
 
 pub const CIRCLE_THICKNESS: f64 = 0.15;

@@ -1,5 +1,6 @@
 use crate::constants::*;
 use crate::shapes::*;
+use crate::fourier::*;
 
 extern crate graphics;
 extern crate opengl_graphics;
@@ -65,7 +66,7 @@ impl Epicycle
         }
     }
 
-    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut Vec<f64>, queue: &mut VecDeque<f64>)
+    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut VecDeque<Complex>)
     {
         self.circle.render(gl, arg);
         self.line.render(gl, arg);
@@ -80,23 +81,22 @@ impl Epicycle
                 let edge_x: f64 = self.line.get_x() + self.line.get_len() * f64::cos(self.line.get_theta());
                 let edge_y: f64 = self.line.get_y() + self.line.get_len() * f64::sin(self.line.get_theta());
 
-                queue.push_front(edge_y);
-
-                if queue.len() > 300
+                points.push_front(Complex::new(edge_x, edge_y));
+                if points.len() > 100
                 {
-                    queue.pop_back();
+                    points.pop_back();
                 }
 
                 gl.draw(arg.viewport(), |c, gl| {
-                    line.draw_from_to([edge_x, edge_y], [IMAGE_X, edge_y], &c.draw_state, c.transform, gl);
+                    // line.draw_from_to([edge_x, edge_y], [IMAGE_X, edge_y], &c.draw_state, c.transform, gl);
 
-                    for i in 0..(queue.len() - 1)
+                    for i in 0..(points.len() - 1)
                     {
-                        line.draw_from_to([IMAGE_X + i as f64, queue[i]], [IMAGE_X + i as f64 + 1.0, queue[i + 1]], &c.draw_state, c.transform, gl);
+                        line.draw_from_to([points[i].re(), points[i].im()], [points[i + 1].re(), points[i + 1].im()], &c.draw_state, c.transform, gl);
                     }
                 });
             },
-            Child::More(ref mut child) => child.render(gl, arg, points, queue)
+            Child::More(ref mut child) => child.render(gl, arg, points)
         }
     }
 }
