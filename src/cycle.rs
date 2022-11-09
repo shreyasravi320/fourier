@@ -9,23 +9,6 @@ use piston::RenderArgs;
 use opengl_graphics::GlGraphics;
 use graphics::types::Color;
 
-fn add_point(points: &mut VecDeque<f64>, point: f64)
-{
-    if points.len() == 0
-    {
-        points.push_front(point);
-    }
-    else if points.len() == POINTS
-    {
-        points.pop_back();
-        points.push_front(point);
-    }
-    else
-    {
-        points.push_front(point);
-    }
-}
-
 #[allow(dead_code)]
 pub enum Child
 {
@@ -35,7 +18,8 @@ pub enum Child
 
 pub struct Epicycle
 {
-    n: f64,
+    freq: f64,
+    phase: f64,
     circle: Circle,
     line: Line,
     child: Child
@@ -48,13 +32,22 @@ impl Epicycle
     {
         let circle = Circle::new(x, y, rad / (n * PI), border_rad, color);
         let line = Line::new(x, y, rad / (n * PI), 0.0, color);
-        return Epicycle{ n: n, circle: circle, line: line, 
+        return Epicycle{ freq: n, phase: 0.0, circle: circle, line: line, 
             child: if num <= 1 { Child::Empty } else { Child::More(Box::new(Self::new(num - 1, n + 2.0, x + rad / (n * PI), y, rad, border_rad, color))) } };
+    }
+
+    pub fn from(i: usize, x: f64, y: f64, border_rad: f64, transform: Vec<[f64; 3]>, color: Color) -> Self
+    {
+        // [freq, amp, phase]
+        let circle = Circle::new(x, y, transform[i][1], border_rad, color);
+        let line = Line::new(x, y, transform[i][1], transform[i][2], color);
+        return Epicycle{ freq: transform[i][0], phase: transform[i][2], circle: circle, line: line,
+            child: if i < transform.len() - 1 { Child::More(Box::new(Self::from(i + 1, x + transform[i][1], y, border_rad, transform, color))) } else { Child::Empty } };
     }
 
     pub fn update(&mut self, time: f64)
     {
-        self.line.set_theta(self.n * time);
+        self.line.set_theta(self.freq * time + self.phase + PI / 2.0);
 
         match self.child
         {
@@ -72,7 +65,7 @@ impl Epicycle
         }
     }
 
-    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut VecDeque<f64>)
+    pub fn render(&mut self, gl: &mut GlGraphics, arg: &RenderArgs, points: &mut Vec<f64>, queue: &mut VecDeque<f64>)
     {
         self.circle.render(gl, arg);
         self.line.render(gl, arg);
@@ -87,17 +80,23 @@ impl Epicycle
                 let edge_x: f64 = self.line.get_x() + self.line.get_len() * f64::cos(self.line.get_theta());
                 let edge_y: f64 = self.line.get_y() + self.line.get_len() * f64::sin(self.line.get_theta());
 
-                add_point(points, edge_y);
+                queue.push_front(edge_y);
+
+                if queue.len() > 300
+                {
+                    queue.pop_back();
+                }
 
                 gl.draw(arg.viewport(), |c, gl| {
                     line.draw_from_to([edge_x, edge_y], [IMAGE_X, edge_y], &c.draw_state, c.transform, gl);
-                    for i in 0..(points.len() - 1)
+
+                    for i in 0..(queue.len() - 1)
                     {
-                        line.draw_from_to([IMAGE_X + i as f64, points[i]], [IMAGE_X + i as f64 + 1.0, points[i + 1]], &c.draw_state, c.transform, gl);
+                        line.draw_from_to([IMAGE_X + i as f64, queue[i]], [IMAGE_X + i as f64 + 1.0, queue[i + 1]], &c.draw_state, c.transform, gl);
                     }
                 });
             },
-            Child::More(ref mut child) => child.render(gl, arg, points)
+            Child::More(ref mut child) => child.render(gl, arg, points, queue)
         }
     }
 }
