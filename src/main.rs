@@ -8,6 +8,7 @@ extern crate graphics;
 extern crate glutin_window;
 extern crate opengl_graphics;
 
+use std::{thread, time};
 use constants::*;
 use cycle::*;
 use fourier::*;
@@ -20,13 +21,12 @@ use opengl_graphics::{ GlGraphics, OpenGL };
 
 use graphics::types::Color;
 
-
 struct App
 {
     gl: GlGraphics,
     bg_color: Color,
     cycle: Epicycle,
-    points: VecDeque<Complex>
+    points: VecDeque<[f64; 2]>
 }
 
 impl App
@@ -54,13 +54,15 @@ fn main() {
         "Fourier", [ WIDTH, HEIGHT ]
     ).graphics_api(opengl).exit_on_esc(true).samples(8).build().unwrap();
 
-    const NUM_POINTS: usize = 100;
-    let mut points: Vec<Complex> = Vec::new();
+    const SKIP: i32 = 16;
+    const NUM_POINTS: i32 = 5000 / SKIP;
+    let mut points: VecDeque<[f64; 2]> = VecDeque::new();
     for i in 0..NUM_POINTS
     {
-        points.push(Complex::new(100.0 * f64::cos(i as f64), 100.0 * f64::sin(i as f64)));
+        points.push_back(DRAWING[i as usize * SKIP as usize]);
     }
-    let transform: Vec<[f64; 3]> = dft(&mut points);
+
+    let transform: Vec<[f64; 3]> = dft(&mut points.clone());
 
     let mut app = App
     {
@@ -79,6 +81,18 @@ fn main() {
             app.render(&r);
 
             time += 2.0 * PI / NUM_POINTS as f64;
+
+            if time >= 2.0 * PI
+            {
+                // for i in 0..NUM_POINTS
+                // {
+                //     println!("[ {} {} ]", app.points[i as usize][0], app.points[i as usize][1]);
+                // }
+
+                return;
+                time = 0.0;
+                app.points.clear();
+            }
         }
     }
 }
