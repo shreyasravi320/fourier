@@ -41,7 +41,7 @@ impl Epicycle
     {
         // [freq, amp, phase]
         let circle = Circle::new(x, y, transform[i][1], border_rad, color);
-        let line = Line::new(x, y, transform[i][1], transform[i][2], color);
+        let line = Line::new(x, y, transform[i][1], 0.0, color);
         return Epicycle{ freq: transform[i][0], phase: transform[i][2], circle: circle, line: line,
             child: if i < transform.len() - 1 { Child::More(Box::new(Self::from(i + 1, x, y, border_rad, transform, color))) } else { Child::Empty } };
     }
@@ -83,12 +83,13 @@ impl Epicycle
 
                 println!("[ {} {} {} {} ]", self.line.get_x(), self.line.get_y(), edge_x, edge_y);
 
-                points.push_back([self.line.get_x(), self.line.get_y()]);
+                // points.push_back([edge_x, edge_y]);
 
                 gl.draw(arg.viewport(), |c, gl| {
-                    for i in 0..(points.len() - 1)
+                    for i in 0..(points.len())
                     {
-                        line.draw_from_to([points[i][0], points[i][1]], [points[i + 1][0], points[i + 1][1]], &c.draw_state, c.transform, gl);
+                        // line.draw_from_to([points[i][0], points[i][1]], [points[i + 1][0], points[i + 1][1]], &c.draw_state, c.transform, gl);
+                        line.draw_from_to([points[i][0] + CENTER_X, points[i][1] + CENTER_Y], [points[(i + 1) % points.len()][0] + CENTER_X, points[(i + 1) % points.len()][1] + CENTER_Y], &c.draw_state, c.transform, gl);
                     }
                 });
             },
