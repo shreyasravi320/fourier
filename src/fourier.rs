@@ -22,7 +22,7 @@ pub fn dft(signal: &mut VecDeque<[f64; 2]>) -> Vec<[f64; 3]>
         sum[0] /= signal.len() as f64;
         sum[1] /= signal.len() as f64;
 
-        x[0] = i as f64 + 1.0;
+        x[0] = i as f64;
         x[1] = f64::sqrt(sum[0] * sum[0] + sum[1] * sum[1]);
         x[2] = f64::atan2(sum[1], sum[0]);
 

@@ -54,38 +54,14 @@ fn main() {
         "Fourier", [ WIDTH, HEIGHT ]
     ).graphics_api(opengl).exit_on_esc(true).samples(8).build().unwrap();
 
-    const SKIP: i32 = 8;
+    const SKIP: i32 = 16;
     const NUM_POINTS: i32 = 5000 / SKIP;
-    // const NUM_POINTS: i32 = 20;
     let mut points: VecDeque<[f64; 2]> = VecDeque::new();
+
     for i in 0..NUM_POINTS
     {
         points.push_back(DRAWING[i as usize * SKIP as usize]);
     }
-
-    // points.push_back([-200.0, -200.0]);
-    // points.push_back([-100.0, -200.0]);
-    // points.push_back([0.0, -200.0]);
-    // points.push_back([100.0, -200.0]);
-    // points.push_back([200.0, -200.0]);
-// 
-    // points.push_back([200.0, -200.0]);
-    // points.push_back([200.0, -100.0]);
-    // points.push_back([200.0, 0.0]);
-    // points.push_back([200.0, 100.0]);
-    // points.push_back([200.0, 200.0]);
-// 
-    // points.push_back([200.0, 200.0]);
-    // points.push_back([100.0, 200.0]);
-    // points.push_back([0.0, 200.0]);
-    // points.push_back([-100.0, 200.0]);
-    // points.push_back([-200.0, 200.0]);
-// 
-    // points.push_back([-200.0, 200.0]);
-    // points.push_back([-200.0, 100.0]);
-    // points.push_back([-200.0, 0.0]);
-    // points.push_back([-200.0, -100.0]);
-    // points.push_back([-200.0, -200.0]);
 
     let transform: Vec<[f64; 3]> = dft(&mut points.clone());
 
@@ -94,8 +70,7 @@ fn main() {
         gl: GlGraphics::new(opengl),
         bg_color: BACK,
         cycle: Epicycle::from(0, CENTER_X, CENTER_Y, CIRCLE_THICKNESS, transform, WHITE),
-        // points: VecDeque::new()
-        points: points
+        points: VecDeque::new()
     };
 
     let mut events = Events::new(EventSettings::new());
@@ -115,7 +90,6 @@ fn main() {
                 //     println!("[ {} {} ]", app.points[i as usize][0], app.points[i as usize][1]);
                 // }
 
-                return;
                 time = 0.0;
                 app.points.clear();
             }
